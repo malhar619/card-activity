@@ -30,9 +30,9 @@ export const VestingSchedule = ({ data, isLoading }: Props) => {
                         YOUR $LAKE VESTING SCHEDULE
                     </div>
                 </div>
-                <div className="w-full flex flex-col items-center overflow-auto">
+                <div className="w-full overflow-auto">
                     {isLoading ? (
-                        <div className="my-24">
+                        <div className="w-full flex my-24 justify-center">
                             <ClipLoader color={colors.gray['300']} loading />
                         </div>
                     ) : (

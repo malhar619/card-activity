@@ -26,7 +26,7 @@ export const StatElement = ({
             <span className="font-kanit-medium whitespace-nowrap text-gray-700 text-xs font-normal tracking-[.12em]">
                 {title}
             </span>
-            <span className="font-kanit-medium color-gradient text-2xl font-medium">
+            <span className="font-kanit-medium whitespace-nowrap color-gradient text-2xl font-medium">
                 {formattedValue}
             </span>
         </div>
