@@ -6,7 +6,7 @@ import lakeLogo from './../../../assets/icons/lake-logo.svg';
 import usdtLogo from './../../../assets/icons/usdt-logo.svg';
 
 type Props = {
-    tokenSymbol?: string;
+    tokenSymbol: string;
     tokenPrice?: number;
     inputValue: number;
     isValueValid?: boolean;

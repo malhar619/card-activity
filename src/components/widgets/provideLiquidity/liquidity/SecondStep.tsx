@@ -310,7 +310,7 @@ export const SecondStep = ({
             <div className="flex min-w-[20vw]">
                 <div className="w-full flex flex-col">
                     <TokenInput
-                        tokenSymbol={pool?.token0.symbol}
+                        tokenSymbol={pool!.token0.symbol}
                         tokenPrice={tokenPrice}
                         inputValue={tokenInputValue}
                         isValueValid={isTokenValueValid}
