@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { ClipLoader } from 'react-spinners';
 import { IPositionDetails } from '../../../../interfaces/positionDetails.interface';
 import { PositionsList } from '../PositionsList';
@@ -9,6 +9,13 @@ import { colors } from '../../../../constants/colors';
 import { customModalStyle } from '../../../../constants/modal';
 import { useStake } from '../../../../hooks/use-stake';
 import { useConfig } from '../../../../hooks/use-config';
+import { useStakerContract } from '../../../../hooks/use-staker-contract';
+import { Contract } from 'ethers';
+import { getIncentiveId } from '../../../../utils/getIncentiveId';
+import { END_TIME, START_TIME } from '../../../../constants/mainnet';
+import { parseBigNumber } from '../../../../utils/parseBigNumber';
+import { ASSET_LAKE } from '../../../../constants/assets';
+import { formatValue } from '../../../../utils/formatValue';
 
 type Props = {
     isOpen: boolean;
@@ -25,7 +32,7 @@ export const StakingModal = ({
     isOpen,
     isLoading,
     positions,
-    stakedPositions: depositedPositions,
+    stakedPositions,
     refreshPositions,
     closeModal,
 }: Props) => {
@@ -33,6 +40,46 @@ export const StakingModal = ({
     const { account, library } = useContext(WalletConnectContext);
     const [isStaking, setIsStaking] = useState(false);
     const [isClaiming, setIsClaiming] = useState(false);
+    const [pendingReward, setPendingReward] = useState(0);
+
+    useEffect(() => {
+        const fetchData = async (
+            account: string,
+            stakingContract: Contract,
+        ) => {
+            let totalReward = 0;
+            for (let i = 0; i < stakedPositions.length; i++) {
+                console.log(
+                    getIncentiveId(
+                        lakeAddress,
+                        getPool(wethAddress, lakeAddress)!.poolAddress,
+                        START_TIME,
+                        END_TIME,
+                        account,
+                    ),
+                    'get',
+                );
+                const rewardInfo =
+                    await stakingContract.callStatic.getRewardInfo(
+                        {
+                            rewardToken: lakeAddress,
+                            pool: getPool(wethAddress, lakeAddress)!
+                                .poolAddress,
+                            startTime: START_TIME,
+                            endTime: END_TIME,
+                            refundee: account,
+                        },
+                        stakedPositions[i].positionId,
+                    );
+                totalReward += parseBigNumber(rewardInfo.reward, 18);
+            }
+            setPendingReward(totalReward);
+        };
+        if (library && account) {
+            const stakingContract = useStakerContract(library);
+            fetchData(account, stakingContract).catch(console.error);
+        }
+    }, [stakedPositions]);
 
     const onStakeClick = async (position: IPositionDetails) => {
         if (library && account) {
@@ -110,18 +157,28 @@ export const StakingModal = ({
                             ) : (
                                 <> </>
                             )}
-                            {depositedPositions.length ? (
+                            {stakedPositions.length ? (
                                 <>
                                     <div className="font-kanit-medium color-gray-gradient text-shadow text-xl tracking-[.12em] text-center mt-2">
                                         STAKED:
                                     </div>
                                     <div className="flex flex-col min-w-[20vw]">
                                         <PositionsList
-                                            positions={depositedPositions}
+                                            positions={stakedPositions}
                                             onClick={(position) =>
                                                 onUnstakeClick(position)
                                             }
                                         />
+                                    </div>
+                                    <div className="font-kanit-medium color-gray-gradient text-shadow text-xl tracking-[.12em] text-center mt-2">
+                                        PENDING REWARD:
+                                    </div>
+                                    <div className="font-kanit-medium color-gray-gradient text-shadow text-xl tracking-[.12em] text-center">
+                                        {formatValue(
+                                            pendingReward,
+                                            ASSET_LAKE.symbol,
+                                            2,
+                                        )}
                                     </div>
                                 </>
                             ) : (
